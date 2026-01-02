@@ -39,6 +39,9 @@ int main(void)
 	char buffer[BSIZE];
 	//character pointer
 	char* ptr = NULL;
+	//to hold te multi line data
+	char line[256];
+
 	
 	//printf the banner
 	printf("=====================================================\n");
@@ -114,7 +117,7 @@ int main(void)
 				DisplayPath();
 				continue;
 			}
-			else if(strcmp(cmd[0],"walk") == 0)
+			else if(strcmp(cmd[0],"save") == 0)
 			{
 				ret = OSWalk(root);
 				if(ret == ERR_MKDIR)
@@ -211,8 +214,13 @@ int main(void)
 				}
 				memset(buffer,'\0',BSIZE);
 				printf("Enter the data: \n");
-				scanf("%[^\n]",buffer);
-				getchar();
+				while (fgets(line, sizeof(line), stdin) != NULL)
+				{
+					strcat(buffer, line);
+				}
+				//press ctrl + D to come out of the loop or submit the data
+				//scanf("%[^\n]",buffer);
+				//getchar();
 				//get the count of data entered
 				ret = strlen(buffer);
 				printf("size : %d \n",ret);

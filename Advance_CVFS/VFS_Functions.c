@@ -1603,6 +1603,7 @@ int OSWalk(Dnode * dirptr)
 
 		dtemp = dtemp->next;
 	}
+	_chdir("..");
 
 }
 
