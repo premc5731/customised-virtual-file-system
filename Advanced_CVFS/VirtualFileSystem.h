@@ -25,6 +25,7 @@ HEADER FILE WITH ALL MACRO DEFINITIONS, FUNCTION AND DATA STRUCTURE DECLARATIONS
 #define CURRENT 1
 #define END 2
 #define BSIZE 1024
+#define DPERMISSION 3
 //-------------------Directory---------------------
 #define NSIZE 50
 #define MAXPATH 1024
@@ -102,9 +103,9 @@ struct Dnode
 {
 	char Dname[NSIZE];
 	struct Inode * Inode;
-    struct Dnode * parent;
-    struct SDnode * subdirll;
-    struct Dfile * dfilell;
+    struct Dnode * Parent;
+    struct SDnode * SubDirll;
+    struct Dfile * Dfilell;
 };
 typedef struct Dnode Dnode;
 typedef struct Dnode*  PDnode;
@@ -113,8 +114,8 @@ typedef struct Dnode**  PPDnode;
 //6) structure of sub directory in Linked List
 struct SDnode  
 {
-	char Cname[NSIZE];
-    struct Dnode * Caddr;
+	char Sname[NSIZE];
+    struct Dnode * Saddr;
     struct SDnode * next;
 };
 typedef struct SDnode SDnode;
@@ -123,7 +124,7 @@ typedef struct SDnode**  PPSDnode;
 
 //7) structure of directory file in Linked list
 struct Dfile
-{
+{ 
 	char Fname[NSIZE];
 	int iNo;
     struct Dfile * next;
@@ -181,7 +182,7 @@ int RemoveDirectory(char * dirname, PDnode Cwd);
 //==================================================================
 
 //function to create a directory node
-PDnode CreateDnode(char* name , PDnode parent, PInode Inode);
+PDnode CreateDnode(char* name , PDnode Parent, PInode Inode);
 
 //function to create a sub directory node for linked list
 PSDnode CreateSDnode(char* name, PDnode addr);
@@ -196,12 +197,12 @@ void InsertDir(PPSDnode first, PSDnode child);
 void InsertFile(PPDfile first, PDfile);
 
 //function to find directory in sub directory linked list
-PDnode FindDir(char* name, PSDnode subdirll);
+PDnode FindDir(char* name, PSDnode SubDirll);
 
 //function to find filename in directory file linked list
-bool Findfilename(char* fname, PDfile dfilell);
+bool Findfilename(char* fname, PDfile Dfilell);
 
-//function to convert name into inode
+//function to convert name into inode number
 int Namei(char* fname, PDnode Cwd);
 
 //function to get filedescriptor from name
@@ -263,10 +264,4 @@ void SBDisplay();
 int OSWalk(Dnode * dirptr);
 
 
-//==================================================================
-//Archieve
-//==================================================================
-
-//function to get file descriptor from file name
-int GetFDFromName(char* filename);
 

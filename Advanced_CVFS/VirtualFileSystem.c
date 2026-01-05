@@ -41,6 +41,8 @@ int main(void)
 	char* ptr = NULL;
 	//to hold te multi line data
 	char line[256];
+	//to hold the exit question value
+	char ch = '\0';
 
 	
 	//printf the banner
@@ -86,18 +88,25 @@ int main(void)
 			}
 			else if(strcmp(cmd[0],"exit") == 0)
 			{
-				ret = OSWalk(root);
-				if(ret == ERR_MKDIR)
+				printf("Do you want to save all files and directories? [Y/N]: ");
+    
+				ch = getchar();
+
+				if (ch == 'y' || ch == 'Y')
 				{
-					printf("Error: unable to make directory\n");
-				}
-				else if(ret == ERR_CREAT)
-				{
-					printf("Error: unable to make file\n");
-				}
-				else if(ret == ERR_NO_DIR)
-				{
-					printf("Error: there should be atleast one directory\n");
+					ret = OSWalk(root);
+					if(ret == ERR_MKDIR)
+					{
+						printf("Error: unable to make directory\n");
+					}
+					else if(ret == ERR_CREAT)
+					{
+						printf("Error: unable to make file\n");
+					}
+					else if(ret == ERR_NO_DIR)
+					{
+						printf("Error: there should be atleast one directory\n");
+					}
 				}
 				printf("Thank you for using the application\n");
 				break;
@@ -313,6 +322,80 @@ int main(void)
 			{
 				//used for testing purpose to display the free inodes
 				SBDisplay();
+				continue;
+			}
+			else if(strcmp(cmd[0],"create") == 0)// it is executed when user dont give permission
+			{
+				//if user dont give permission then default permission is 3
+				fd = CreateFile(cmd[1], DPERMISSION , Cwd);
+				if(fd == ERR_NO_DIR)
+				{
+					printf("Error: There should be atleast 1 Directory\n");
+				}
+				else if(fd == ERR_PERMISSION)
+				{
+					printf("Error: Permission denied\n");
+				}
+				else if(fd == ERR_MAXFILES)
+				{
+					printf("Error: No free Inodes\n");
+				}
+				else if(fd == ERR_UNIQUE_FILE)
+				{
+					printf("Error: Filename already exist\n");
+				}
+				else if(fd >= 0)
+				{
+					printf("File successfully created with file descriptor: %d\n",fd);
+				}
+				continue;
+			}
+			else if(strcmp(cmd[0],"read") == 0)// it is executed when user dont mention the no of bytes to read
+			{
+				//get the file descriptor
+				fd = Namefd(cmd[1], Cwd);
+				ret = Namei(cmd[1], Cwd);//convert name to ino
+				ret = (GetInoAddr(ret))->ActualFileSize;//get the ino address to get the actual file size
+				if(fd == ERR_FILE_NOT_EXIST)
+				{
+					printf("Error: File does not exist\n");
+					continue;
+				}
+				//create a buffer to read data into
+				int read_count = ret;
+				ptr = (char*) malloc(sizeof(char)*(read_count+1));
+				memset(ptr, '\0', read_count+1);
+				//check for memory allocation failure
+				if(ptr == NULL)
+				{
+					printf("ERROR: Memory allocation failure\n");
+					continue;
+				}
+				ret = Read_File(fd,ptr,ret);
+				if(ret == ERR_FILE_NOT_EXIST)
+				{
+					printf("ERROR: File does not exist\n");
+				}
+				else if(ret == ERR_NO_PERMISSION)
+				{
+					printf("ERROR: Permission denied\n");
+				}
+				else if(ret == ERR_OFFSET)
+				{
+					printf("ERROR: Reached end of file\n");
+				}
+				else if(ret == ERR_NO_REGULAR)
+				{
+					printf("ERROR: Not a regular file\n");
+				}
+				else if(ret == ERR_EMPTY_FILE)
+				{
+					printf("ERROR: File is empty\n");
+				}
+				else if(ret > 0)
+				{
+					printf(" Data : %s \n",ptr);
+				}
 				continue;
 			}
 			else

@@ -19,7 +19,7 @@ extern char path[MAXPATH];
 //FILE RELATED FUNCTIONS DEFINITION 
 //=============================================================================
 
-//function to create a new file
+//1)function to create a new file
 int CreateFile(char* filename, int permission, PDnode Cwd)
 {
 	//ptr to hold Dfile entry
@@ -56,7 +56,7 @@ int CreateFile(char* filename, int permission, PDnode Cwd)
 	}
 	
 	//check if file with this name is already present
-	if(Findfilename(filename, Cwd->dfilell))
+	if(Findfilename(filename, Cwd->Dfilell))
 	{
 		//file already exists
 		return ERR_UNIQUE_FILE;
@@ -103,7 +103,7 @@ int CreateFile(char* filename, int permission, PDnode Cwd)
 	UFDT[i].PtrFileTable->PtrInode = temp;
 	
 	//initialise the members of the new inode that we fetched
-	//strcpy(UFDT[i].PtrFileTable->PtrInode->FileName,filename); // remove fname from inode
+	//strcpy(UFDT[i].PtrFileTable->PtrInode->FileName,filename); // remove Fname from inode
 	//UFDT[i].PtrFileTable->PtrInode->InodeNumber = i;
 	UFDT[i].PtrFileTable->PtrInode->FileSize = MAXFILESIZE;
 	UFDT[i].PtrFileTable->PtrInode->ActualFileSize = 0; 
@@ -116,14 +116,14 @@ int CreateFile(char* filename, int permission, PDnode Cwd)
 
 	//create and add the file entry in the linked list of Dfile of cwd
 	ptrDfile = CreateDfile(filename, temp->InodeNumber);
-	InsertFile(&(Cwd->dfilell), ptrDfile);
+	InsertFile(&(Cwd->Dfilell), ptrDfile);
 	
 	//return the file descriptor - index of UFDT
 	return i;
 }
 
 //=============================================================================
-//function to open a file
+//2)function to open a file
 int OpenFile(char* filename, int mode, PDnode Cwd)
 {
 	//temp poiner to hold the inode
@@ -200,7 +200,7 @@ int OpenFile(char* filename, int mode, PDnode Cwd)
 }
 
 //=============================================================================
-//function to read a file
+//3)function to read a file
 int Read_File(int fd, char* buffer, int count)
 {
 	int read_size = 0;
@@ -254,7 +254,7 @@ int Read_File(int fd, char* buffer, int count)
 
 
 //=============================================================================
-//function to write to a file
+//4)function to write to a file
 int Write_File(int fd, char* buffer, int count)
 {
 	//check file permission in FileTable
@@ -296,7 +296,7 @@ int Write_File(int fd, char* buffer, int count)
 
 
 //=============================================================================
-//function to close a file by its name
+//5)function to close a file by its name
 int CloseFileByName(char* filename, PDnode Cwd)
 {
 	//get the file descriptor of the file
@@ -321,7 +321,7 @@ int CloseFileByName(char* filename, PDnode Cwd)
 }
 
 //=============================================================================
-//function to close all files
+//6)function to close all files
 int CloseAllFiles()
 {
 	//loop counter
@@ -340,7 +340,7 @@ int CloseAllFiles()
 }
 
 //=============================================================================
-//function to lseek a file - change file offset
+//7)function to lseek a file - change file offset
 int LseekFile(int fd, int offset, int position)
 {
 	if(UFDT[fd].PtrFileTable == NULL)
@@ -470,7 +470,7 @@ int LseekFile(int fd, int offset, int position)
 }
 
 //=============================================================================
-//function to truncate a file
+//8)function to truncate a file
 int truncate_file(char* filename, PDnode Cwd)
 {
 	//get file descriptor for the file
@@ -494,7 +494,7 @@ int truncate_file(char* filename, PDnode Cwd)
 }
 
 //=============================================================================
-//function to delete a file
+//9)function to delete a file
 int RemoveFile(char* filename, PDnode Cwd)
 {
 	int fd = -1;
@@ -528,7 +528,7 @@ int RemoveFile(char* filename, PDnode Cwd)
 		UFDT[fd].PtrFileTable = NULL;
 		
 		//remove Dfile entry form Dfile linked list
-		Dhead = &(Cwd->dfilell);
+		Dhead = &(Cwd->Dfilell);
 		
 		//Dfile linked list is empty
 		if((*Dhead) == NULL)
@@ -560,6 +560,7 @@ int RemoveFile(char* filename, PDnode Cwd)
 			curr = (*Dhead);
 			(*Dhead) = (*Dhead)->next;
 			free(curr);
+			SUPERBLOCK.FreeInodes = SUPERBLOCK.FreeInodes + 1;
 			return SUCCESS;
 		}
 		//if the first file entry is not the file to be removed 
@@ -611,7 +612,7 @@ int RemoveFile(char* filename, PDnode Cwd)
 //DIRECTORY RELATED FUNCTIONS DEFINITION
 //=============================================================================
 
-//function to create a new directory
+//10)function to create a new directory
 int MakeDirectory(char* name, PPDnode first, PPDnode root)
 {
 	//to hold the new Dnode address
@@ -639,7 +640,7 @@ int MakeDirectory(char* name, PPDnode first, PPDnode root)
     }
     else if((*first) != NULL)	//to create sub directories
 	{   
-		if(FindDir(name, (*first)->subdirll) != NULL) // to check whether directory name is already there or not 
+		if(FindDir(name, (*first)->SubDirll) != NULL) // to check whether directory name is already there or not 
 		{
 			return ERR_UNIQUE_FILE;
 		}
@@ -648,7 +649,7 @@ int MakeDirectory(char* name, PPDnode first, PPDnode root)
 		//get new SDnode
         CNode = CreateSDnode(name,DNode);
 		//insert in the sub directory LL
-        InsertDir(&((*first)->subdirll),CNode);
+        InsertDir(&((*first)->SubDirll),CNode);
     }
 	//assigning filetype to special
 	temp->FileType = SPECIAL;
@@ -661,7 +662,7 @@ int MakeDirectory(char* name, PPDnode first, PPDnode root)
 }
 
 //=============================================================================
-//function to change the current working directory
+//11)function to change the current working directory
 int ChangeDirectory(char* name, PPDnode Cwd)
 {
 	//to hold the directory address to be move
@@ -674,15 +675,15 @@ int ChangeDirectory(char* name, PPDnode Cwd)
 	{
 		printf("Cwd : %s\n",(*Cwd)->Dname);
 	}
-    else if((strcmp(name, "..") == 0) && ((*Cwd)->parent != NULL))
+    else if((strcmp(name, "..") == 0) && ((*Cwd)->Parent != NULL))
     {
-        (*Cwd) = (*Cwd)->parent;
+        (*Cwd) = (*Cwd)->Parent;
 		UpdatePath(NULL,REMOVE);
     }
 	else
 	{
 		//find the directory from sub directory LL
-		cddir = FindDir(name, (*Cwd)->subdirll);
+		cddir = FindDir(name, (*Cwd)->SubDirll);
 
 		if(cddir == NULL)
 		{
@@ -699,7 +700,7 @@ int ChangeDirectory(char* name, PPDnode Cwd)
 }
 
 //=============================================================================
-//function to delete a empty directory
+//12)function to delete a empty directory
 int RemoveDirectory(char * dirname, PDnode Cwd)
 {
 	PPSDnode sdHead = NULL;
@@ -709,7 +710,7 @@ int RemoveDirectory(char * dirname, PDnode Cwd)
 	int iNo = -1;
 
 	//get the sub directory head
-	sdHead = &(Cwd->subdirll);
+	sdHead = &(Cwd->SubDirll);
 
 	//if sub directory LL is empty
 	if((*sdHead) == NULL)
@@ -717,17 +718,17 @@ int RemoveDirectory(char * dirname, PDnode Cwd)
 		return ERR_NO_DIR;
 	}
 	//if first node of sub directory is the directory to be removed
-	else if(strcmp((*sdHead)->Cname, dirname) == 0) 
+	else if(strcmp((*sdHead)->Sname, dirname) == 0) 
 	{
 		//get the Dnode of sub directory
-		PDnode subdir = (*sdHead)->Caddr;
+		PDnode subdir = (*sdHead)->Saddr;
 
 		//check whether directory is empty
-		if((subdir->subdirll == NULL) && (subdir->dfilell == NULL))
+		if((subdir->SubDirll == NULL) && (subdir->Dfilell == NULL))
 		{
 			subdir->Inode->FileType = 0;// freeing inode
 			free(subdir);	// free dir's Dnode
-			//remove the SDNode of the directory from parent's subdir LL 
+			//remove the SDNode of the directory from Parent's subdir LL 
 			temp = (*sdHead);
 			(*sdHead) = (*sdHead)->next;
 			free(temp);	// free SDnode of the directory
@@ -751,12 +752,12 @@ int RemoveDirectory(char * dirname, PDnode Cwd)
 		//traverse the sub dir LL
 		while(curr != NULL)
 		{ 
-			if(strcmp(curr->Cname, dirname) == 0) // sub dir found
+			if(strcmp(curr->Sname, dirname) == 0) // sub dir found
 			{
 				//get the Dnode address of the directory
-				PDnode subdir = curr->Caddr;
+				PDnode subdir = curr->Saddr;
 				//check whether directory is empty
-				if((subdir->subdirll == NULL) && (subdir->dfilell == NULL))
+				if((subdir->SubDirll == NULL) && (subdir->Dfilell == NULL))
 				{
 					subdir->Inode->FileType = 0;// freeing inode
 					free(subdir);	// free sub dir's Dnode
@@ -792,8 +793,8 @@ int RemoveDirectory(char * dirname, PDnode Cwd)
 //UTILITY FUNCTIONS DEFINITION
 //=============================================================================
 
-//function to create a directory node i.e Dnode
-PDnode CreateDnode(char* name , PDnode parent, PInode Inode)
+//13)function to create a directory node i.e Dnode
+PDnode CreateDnode(char* name , PDnode Parent, PInode Inode)
 {	
 	// to hold the Dnode 
     PDnode temp = NULL;
@@ -814,17 +815,17 @@ PDnode CreateDnode(char* name , PDnode parent, PInode Inode)
     strcpy(temp->Dname, name);
 	//assign the inode
 	temp->Inode = Inode;
-	//assign the parent Dnode
-    temp->parent = parent;
+	//assign the Parent Dnode
+    temp->Parent = Parent;
 	//assign the sud dir and dfile LL
-    temp->subdirll = NULL;
-    temp->dfilell = NULL;
+    temp->SubDirll = NULL;
+    temp->Dfilell = NULL;
 
     return temp;
 }
 
 //=============================================================================
-//function to create a sub directory node for linked list i.e SDnode
+//14)function to create a sub directory node for linked list i.e SDnode
 PSDnode CreateSDnode(char* name, PDnode addr)
 {
 	// to hold the SDnode
@@ -840,18 +841,18 @@ PSDnode CreateSDnode(char* name, PDnode addr)
     }
 
 	//initialising the attributes
-    memset(temp->Cname, '\0', NSIZE);
+    memset(temp->Sname, '\0', NSIZE);
 	//copy the name 
-    strcpy(temp->Cname, name);
+    strcpy(temp->Sname, name);
 	//assign the address of the corresponding Dnode
-    temp->Caddr = addr;
+    temp->Saddr = addr;
     temp->next = NULL;
 
     return temp;
 }
 
 //=============================================================================
-//function to create a directory file node for linked list
+//15)function to create a directory file node for linked list
 PDfile CreateDfile(char * name, int iNo)
 {
 	// to hold the Dfile
@@ -876,7 +877,7 @@ PDfile CreateDfile(char * name, int iNo)
 }
 
 //=============================================================================
-//function to insert sub directory node in linked List
+//16)function to insert sub directory node in linked List
 void InsertDir(PPSDnode first, PSDnode child) 
 {
 	//LL is empty
@@ -893,7 +894,7 @@ void InsertDir(PPSDnode first, PSDnode child)
 }
 
 //=============================================================================
-//function to insert directory file node in linked List
+//17)function to insert directory file node in linked List
 void InsertFile(PPDfile first, PDfile ptrDfile) 
 {
 	// LL is empty
@@ -910,60 +911,60 @@ void InsertFile(PPDfile first, PDfile ptrDfile)
 }
 
 //=============================================================================
-//function to find directory in sub directory linked list
-PDnode FindDir(char* name, PSDnode subdirll)
+//18)function to find directory in sub directory linked list
+PDnode FindDir(char* name, PSDnode SubDirll)
 {
 	//if there is no sub directory or sub dir LL is empty
-    if(subdirll == NULL)
+    if(SubDirll == NULL)
     {
         return ERR_DIR_NOT_EXIST;
     }
 	//traverse the LL to find the directory
-    while(( subdirll != NULL) && (strcmp(subdirll->Cname, name) != 0))
+    while(( SubDirll != NULL) && (strcmp(SubDirll->Sname, name) != 0))
     {
-        subdirll = subdirll->next;
+        SubDirll = SubDirll->next;
     }
-    if(subdirll == NULL)
+    if(SubDirll == NULL)
     {
         return ERR_DIR_NOT_EXIST;
     }
-    return (subdirll->Caddr);
+    return (SubDirll->Saddr);
 }
 
 //=============================================================================
-//function to find filename in directory file linked list
-bool Findfilename(char* fname, PDfile dfilell)
+//19)function to find filename in directory file linked list
+bool Findfilename(char* Fname, PDfile Dfilell)
 {
     bool flag = false;
 
 	//if Dfile LL is empty or no file is there in the linked list
-    if(dfilell == NULL)
+    if(Dfilell == NULL)
     {
         return flag;
     }
 	//traverse the LL to find the file
-    while(dfilell != NULL)
+    while(Dfilell != NULL)
     {
-        if(strcmp(dfilell->Fname, fname) == 0)	//file found
+        if(strcmp(Dfilell->Fname, Fname) == 0)	//file found
         {
             flag = true;
             break;
         }
-		dfilell = dfilell->next;
+		Dfilell = Dfilell->next;
     }
     return flag;
 }
 
 //=============================================================================
-//function to convert name into inode
-int Namei(char* fname, PDnode Cwd)
+//20)function to convert name into inode
+int Namei(char* Fname, PDnode Cwd)
 {
 	// to hold the inode number
 	int iNo = -1;
 	//to hold the head of the Dfile LL
 	PDfile temp = NULL;
 	//assigning the head of the Dfile LL
-	temp = Cwd->dfilell;
+	temp = Cwd->Dfilell;
 
 	//if there is no files
 	if(temp == NULL)
@@ -973,7 +974,7 @@ int Namei(char* fname, PDnode Cwd)
 	//traverse the LL
 	while(temp != NULL)
 	{
-		if(strcmp(fname, temp->Fname) == 0)	//file found
+		if(strcmp(Fname, temp->Fname) == 0)	//file found
 		{
 			iNo = temp->iNo;
 			break;
@@ -988,12 +989,12 @@ int Namei(char* fname, PDnode Cwd)
 }
 
 //=============================================================================
-//function to get filedescriptor from name
-int Namefd(char* fname, PDnode Cwd)
+//21)function to get filedescriptor from name
+int Namefd(char* Fname, PDnode Cwd)
 {
 	int fd = -1, iNo = -1;
 	//get the ino of the file
-	iNo = Namei(fname, Cwd);
+	iNo = Namei(Fname, Cwd);
 	//handle the file not found
 	if(iNo == -1)
 	{
@@ -1020,7 +1021,7 @@ int Namefd(char* fname, PDnode Cwd)
 }
 
 //=============================================================================
-//function to get inode address from file name 
+//22)function to get inode address from file name 
 PInode GetInode(char* filename, PDnode Cwd)
 {
 	int iNo = -1;
@@ -1036,7 +1037,7 @@ PInode GetInode(char* filename, PDnode Cwd)
 	}
 
 	//assign the head of the Dfile LL
-	dfileptr = Cwd->dfilell;
+	dfileptr = Cwd->Dfilell;
 
 	if(dfileptr == NULL)
 	{
@@ -1062,11 +1063,11 @@ PInode GetInode(char* filename, PDnode Cwd)
 }
 
 //=============================================================================
-//function to display sub directories
+//23)function to display sub directories
 void DisplaySubDir(PDnode Cwd)
 {
 	//assign head of the sub dir LL
-    PSDnode subdir = Cwd->subdirll;
+    PSDnode subdir = Cwd->SubDirll;
 	//sub dir is empty
 	if(subdir == NULL)
 	{
@@ -1076,36 +1077,36 @@ void DisplaySubDir(PDnode Cwd)
 	//traverse the LL and print
     while(subdir != NULL)
     {
-        printf(" %s ",subdir->Cname);
+        printf(" %s ",subdir->Sname);
         subdir = subdir->next;
     }
     printf("\n");
 }
 
 //=============================================================================
-//function to display the files in current working directory 
+//24)function to display the files in current working directory 
 void DisplayFiles(PDnode Cwd)
 {
 	// assign the head of the Dfile LL
-    PDfile dfilell = Cwd->dfilell;
+    PDfile Dfilell = Cwd->Dfilell;
 	//no file i.e Dfile LL is empty
-	if(dfilell == NULL)
+	if(Dfilell == NULL)
 	{
 		return;
 	}
 	printf("Files : \n");
 
 	//traverse the LL and print
-    while(dfilell != NULL)
+    while(Dfilell != NULL)
     {
-        printf(" %s ",dfilell->Fname);
-        dfilell = dfilell->next;
+        printf(" %s ",Dfilell->Fname);
+        Dfilell = Dfilell->next;
     }
     printf("\n");
 }
 
 //=============================================================================
-//function to get free inode 
+//25)function to get free inode 
 PInode GetFreeInode()
 {
 	//pointer to hold the free Inode
@@ -1126,7 +1127,7 @@ PInode GetFreeInode()
 }
 
 //=============================================================================
-//function to get inode address from inode number
+//26)function to get inode address from inode number
 PInode GetInoAddr(int iNo)
 {
 	//to hold the inode
@@ -1147,7 +1148,7 @@ PInode GetInoAddr(int iNo)
 }
 
 //=============================================================================
-//function to handle the absolute path
+//27)function to handle the absolute path
 void UpdatePath(const char *dirname, bool option)
 {
     if (option)
@@ -1180,7 +1181,7 @@ void UpdatePath(const char *dirname, bool option)
 //MISCELLANEOUS FUNCTIONS DEFINITION
 //=============================================================================
 
-//function to initialise the super block - initialising the members of UFDT to NULL, initialising the two members of SUPERBLOCK
+//28)function to initialise the super block - initialising the members of UFDT to NULL, initialising the two members of SUPERBLOCK
 void InitialiseSuperBlock()
 {
 	int i = 0;
@@ -1197,7 +1198,7 @@ void InitialiseSuperBlock()
 }
 
 //=============================================================================
-//function to create DILB
+//29)function to create DILB
 void createDILB()
 {
 	//loop counter
@@ -1239,7 +1240,7 @@ void createDILB()
 }
 
 //=============================================================================
-//function to display list of commands
+//30)function to display list of commands
 void DisplayHelp()
 {
 	printf("ls: List the files\n");
@@ -1265,7 +1266,7 @@ void DisplayHelp()
 }
 
 //=============================================================================
-//function to display man page of a command
+//31)function to display man page of a command
 void man(char* command)
 {
 	if(command == NULL)
@@ -1385,7 +1386,7 @@ void man(char* command)
 }
 
 //=============================================================================
-//function to list files and directories 
+//32)function to list files and directories 
 void lsDirFile(PDnode Cwd)
 {
 	//create a temp pointer to navigate through the DILB
@@ -1402,7 +1403,7 @@ void lsDirFile(PDnode Cwd)
 }
 
 //=============================================================================
-//function to display file statistics from file name
+//33)function to display file statistics from file name
 int file_stat(char* filename, PDnode Cwd)
 {
 	if(filename == NULL)
@@ -1455,7 +1456,7 @@ int file_stat(char* filename, PDnode Cwd)
 }
 
 //=============================================================================
-//function to display file statistics from file descriptor
+//34)function to display file statistics from file descriptor
 int file_fstat(int fd)
 {
 	//printf("fd = %d\n",fd);
@@ -1504,7 +1505,7 @@ int file_fstat(int fd)
 }
 
 //=============================================================================
-// function to get the read and write offset for testing
+//35)function to get the read and write offset for testing
 void get_offset(char* filename)
 {
 	int fd = Namefd(filename, Cwd);
@@ -1519,27 +1520,27 @@ void get_offset(char* filename)
 }
 
 //=============================================================================
-//function to display absolute path of current working directory
+//36)function to display absolute path of current working directory
 void DisplayPath()
 {
 	printf("%s\n",path);
 }
 
 //=============================================================================
-//function to display inormation of superblock for testing
+//37)function to display inormation of superblock for testing
 void SBDisplay()
 {
 	printf("Free inodes  : %d\n",SUPERBLOCK.FreeInodes);
 }
 
 //=============================================================================
-//function to store the file structure on secondary storage
+//38)function to store the file structure on secondary storage
 int OSWalk(Dnode * dirptr)
 {
 	int iRet = -1, fd = -1;
 	//to hold the current directory dnodell
 	PSDnode dtemp = NULL;
-	//to hold the current directory dfilell
+	//to hold the current directory Dfilell
 	PDfile ftemp = NULL;
 	//to hold the inode
 	PInode itemp = NULL;
@@ -1565,8 +1566,8 @@ int OSWalk(Dnode * dirptr)
 	//to change the current working directory
 	_chdir(dirptr->Dname);
 
-	//assign the head of the dfilell
-	ftemp = dirptr->dfilell;
+	//assign the head of the Dfilell
+	ftemp = dirptr->Dfilell;
 	
 	//first copy all the files
 	while(ftemp != NULL)
@@ -1587,9 +1588,9 @@ int OSWalk(Dnode * dirptr)
 	}
 
 	//assign the head of sdnodell
-	dtemp = dirptr->subdirll;
+	dtemp = dirptr->SubDirll;
 
-	//directory is empty so go back to parent directory
+	//directory is empty so go back to Parent directory
 	if(dtemp == NULL)
 	{
 		_chdir("..");
@@ -1599,42 +1600,11 @@ int OSWalk(Dnode * dirptr)
 	//to create sub directories
 	while(dtemp != NULL)
 	{
-		OSWalk(dtemp->Caddr);
+		OSWalk(dtemp->Saddr);
 
 		dtemp = dtemp->next;
 	}
 	_chdir("..");
 
 }
-
-//=============================================================================
-// Archieve
-//=============================================================================
-
-//function to get file descriptor from file name
-int GetFDFromName(char* filename)
-{
-	//loop counter
-	int i = 0;
-	for(i=0;i<MAXFILES;i++)
-	{
-		if(UFDT[i].PtrFileTable != NULL)
-		{
-			if(strcmp(UFDT[i].PtrFileTable->PtrInode->FileName,filename) == 0)
-			{
-				break;
-			}
-		}		
-	}
-	
-	if(i == MAXFILES)
-	{
-		return -1;
-	}
-	else 
-	{
-		return i;
-	}
-}
-
 
