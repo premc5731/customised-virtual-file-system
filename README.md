@@ -2,104 +2,125 @@
 
 ## Project Overview
 
-This project simulates a **Customised Virtual File System (CVFS) in C language** that mimics basic UNIX-like file operations such as creating, reading, writing, truncating, and deleting files. It works entirely in memory using custom structures like inodes, file tables, and a user file descriptor table (UFDT).
+This project implements a **Customised Virtual File System (CVFS) in C language** that simulates core UNIX/Linux file system behavior entirely in memory. In addition to basic file operations such as creating, reading, writing, truncating, and deleting files, the system now supports a **hierarchical directory structure**, similar to a real-world Linux file system.
+
+The CVFS uses custom-designed data structures like **SuperBlock, Inode, FileTable, UFDT**, and newly added **directory-specific structures** to manage files and directories efficiently.
+
+---
 
 ## Role of the Customised Virtual File System (CVFS)
 
-The Customised Virtual File System (CVFS) acts as an abstraction layer between user-level programs and various underlying file systems like ext4, FAT32, or NTFS. It provides a consistent set of file operations (such as open, read, write, and close), allowing the operating system to interact with different file systems in a uniform way. This design simplifies file handling, enhances modularity, and enables support for multiple file systems without changing core OS logic.
+The Customised Virtual File System (CVFS) acts as an abstraction layer between user-level programs and underlying file system implementations. It provides a consistent interface for file and directory operations (such as `open`, `read`, `write`, `mkdir`, and `ls`), allowing the operating system to manage storage objects uniformly.
+
+This modular design simplifies file handling logic, improves extensibility, and helps in understanding how real file systems like **ext4** internally manage directories, files, and metadata.
 
 ---
+
 ## Tech Stack
 
-This Customised Virtual File System (CVFS) project is built using the following technologies and concepts:
+| Technology / Concept      | Description |
+|---------------------------|-------------|
+| **C Language**            | Core programming language used to implement filesystem logic |
+| **GCC Compiler**          | Used to compile and build the project |
+| **Data Structures**       | SuperBlock, Inode, FileTable, UFDT, Dnode, SDnode, Dfile |
+| **UNIX/Linux Concepts**   | Inode-based file system design and directory hierarchy |
+| **In-Memory FS**          | Entire filesystem operates without disk I/O |
 
-| Technology / Concept      | Description                                                                 |
-|---------------------------|-----------------------------------------------------------------------------|
-| **C Language**            | Core programming language used to implement all logic and memory handling   |
-| **GCC Compiler**          | GNU Compiler Collection used to compile and build the project (`.c` files)  |
-| **Data Structures**       | Custom structures like **Inode**, **SuperBlock**, **FileTable** and **UFDT** to simulate file system layers |
-| **UNIX/Linux Concepts**   | Used as the foundational model to understand real-world CVFS behavior         |
-| **File System Simulation**| Mimics a real-world file system with support for operations like `read`, `write`, `ls`, etc. |
+---
 
 ## How to Compile and Run
 
 ### Compilation (Windows/Linux)
 
 ```bash
-gcc VFS_Functions.c VirtualFileSystem.c -o myCvfs.exe
+gcc VFS_Functions.c VirtualFileSystem.c -o mycvfs
 ```
 
-### Run the program:
+### Run the program
 
 ```bash
-./mycvfs.exe
+./mycvfs
 ```
 
 ---
 
-### Command List (with Descriptions and Usage)
+## Command List
 
-| Command      | Use Case                                               | Usage Example                         |
-|--------------|--------------------------------------------------------|----------------------------------------|
-| `ls`         | List the files in the system                           | `ls`                                   |
-| `closeall`   | Close all the open files                               | `closeall`                             |
-| `cls`        | Clear the console                                      | `cls`                                  |
-| `exit`       | Terminate the filesystem application                   | `exit`                                 |
-| `stat`       | Display info of a file using filename                  | `stat <filename>`                      |
-| `fstat`      | Display info of a file using file descriptor           | `fstat <fd>`                           |
-| `rm`         | Remove/delete a file                                   | `rm <filename>`                        |
-| `man`        | Display manual/help for a command                      | `man <command>`                        |
-| `write`      | Write content to an existing file                      | `write <filename> <data>`                    |
-| `truncate`   | Remove all data from a file                            | `truncate <filename>`                  |
-| `create`     | Create a new file with permission                      | `create <filename> <permission>`       |
-| `open`       | Open an existing file with a mode                      | `open <filename> <mode>`               |
-| `read`       | Read data from a file                                  | `read <filename> <size>`                     |
-| `offset`     | Get read and write offsets of a file                   | `offset <filename>`                    |
+| Command      | Use Case |
+|--------------|----------|
+| `ls`         | List files and directories in current directory |
+| `mkdir`      | Create a new directory |
+| `rmdir`      | delete a empty directory |
+| `cd`         | Change current working directory |
+| `pwd`        | Display current directory path |
+| `create`     | Create a new file |
+| `open`       | Open an existing file |
+| `read`       | Read data from a file |
+| `write`      | Write data to a file |
+| `truncate`   | Clear file contents |
+| `rm`         | Delete a file |
+| `stat`       | Show file metadata using filename |
+| `fstat`      | Show file metadata using file descriptor |
+| `offset`     | Display read/write offsets |
+| `closeall`   | Close all open files |
+| `cls`        | Clear console |
+| `exit`       | Exit the CVFS shell |
 
+---
 
 ## Internal Architecture
 
 | Component   | Description |
 |-------------|-------------|
 | **SuperBlock** | Tracks total and free inodes |
-| **Inode**      | Represents each file (filename, size, type, etc.) |
-| **FileTable**  | Tracks opened file, offsets, and access mode |
-| **UFDT**       | Array of pointers to FileTable (file descriptor mapping) |
+| **Inode**      | Stores metadata and links to data blocks |
+| **FileTable**  | Maintains file offsets and access modes |
+| **UFDT**       | Maps file descriptors to FileTable entries |
+| **Dnode**      | Represents a directory node |
+| **SDnode**     | Linked list of sub-directories |
+| **Dfile**      | Maps filenames to inode numbers |
 
 ---
 
-## File Structure
+## Directory Structure Support
 
-- `SuperBlock`: Global state for inode tracking.
-- `Inode`: One per file; implemented as a linked list.
-- `FileTable`: Created on file open; tracks read/write positions.
-- `UFDT`: Simulated user file descriptor table.
+The CVFS supports a **tree-based directory hierarchy** with the following features:
+
+- Root directory (`/`)
+- Nested sub-directories
+- Files mapped to directories using Dfile entries
+- Current Working Directory (CWD) support
+
+This design closely models Linux directory internals.
 
 ---
 
 ## Screenshots
 
-## **The Command-Line Interface**
+### Command-Line Interface
 
 <img src="Screenshots/vfs.png" alt="CVFS Screenshot" width="400"/>
-
 
 ---
 
 ## Author
 
-This project is built to simulate real-world file system concepts using C.  
 Developed and maintained by **Prem Choudhary**.
 
-Feel free to enhance it further with:
-- Directory support
-- Persistent storage (save/load filesystem to disk)
-- Command history or shell script support
-- Increase the `MAXFILESIZE` to support larger file content
+This project is intended for academic learning, operating system concept understanding, and interview preparation.
+
+---
+
+## Future Installation
+
+- Persistent storage (save/load filesystem state)
+- Recursive directory deletion
+- Directory-level permissions
+- Shell scripting support
+- Larger file size support
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
+This project is licensed under the **MIT License**.
