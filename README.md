@@ -123,4 +123,4 @@ This project is intended for academic learning, operating system concept underst
 
 ## License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the [MIT License](LICENSE).
